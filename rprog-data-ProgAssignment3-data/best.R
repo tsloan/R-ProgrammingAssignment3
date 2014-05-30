@@ -11,28 +11,24 @@ best <- function(state, outcome) {
   ##  field index field name
   ##   [2]     "Hospital.Name"
   ##   [7]     "State"
-  ##   [15] "Number.of.Patients...Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack"
+  ##   [11] "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack"
   ##   [21] "Number.of.Patients...Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure"
   ##   [27] "Number.of.Patients...Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia"
   
   ######################################################################## 
   # Check the request outcome is valid
   validOutcomes <-c("heart attack", "heart failure", "pneumonia")
-  goodOutcomes <- (validOutcomes == outcome)
-  # goodOutcomes is a boolean list indicating if outcome is in the
-  # validOutcomes list
-  # if outcome is in the list then the sum of the booleans
-  # in goodOutcomes will be 1.
-  if (sum(goodOutcomes) == 0) stop('invalid outcome')    
-  
-  if (outcome == validOutcomes[1]) MortalityField <- 15
+    
+  if (outcome == validOutcomes[1]) MortalityField <- 11
   else if (outcome == validOutcomes[2]) MortalityField <- 21
   else if (outcome == validOutcomes[3]) MortalityField <- 27
   else stop('invalid outcome')
   
   #########################################################################
   ## Read outcome data
-  data<-read.csv("outcome-of-care-measures.csv", colClasses="character")
+  data<-read.csv("outcome-of-care-measures.csv", 
+                  colClasses="character", 
+                  na.strings=c("Not Available","NA"))
   
   #########################################################################
   # Check the state is valid
@@ -59,9 +55,29 @@ best <- function(state, outcome) {
   # extract the hospital name and the mortality rates for the 
   # desired outcome
   statehospitals[,c(2,MortalityField)] 
-  #  sort these into ascending order by Mortality field, ignoring NAs
   
+  # coerce outcome measurement from character to numeric
+  statehospitals[, MortalityField] <- as.numeric(statehospitals[, MortalityField])
   
+  #  Get the minimum value for the Mortality for that outcome, ignoring NAs
+  
+  MinMortality <- min(statehospitals[,MortalityField],na.rm=TRUE)
+  good <- completeCases(statehospitals[MortalityField])
+  MinHospitals<-statehospitals[MortalityField]==MinMortality 
+  print(MinMortality)
+  # Extract the names of the hospital with the MinMortality
+  for (i in 1:nrow(statehospitals)){
+     print(i)
+     if (statehospitals[MortalityField]==MinMortality){
+       print("hello")
+       print(statehospitals[i,2])
+     }
+  }       
+   
+
+    
   ## Return hospital name in that state with lowest 30-day death
   ## rate
+  
+  
 }
