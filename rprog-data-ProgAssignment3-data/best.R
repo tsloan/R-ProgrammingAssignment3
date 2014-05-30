@@ -62,22 +62,15 @@ best <- function(state, outcome) {
   #  Get the minimum value for the Mortality for that outcome, ignoring NAs
   
   MinMortality <- min(statehospitals[,MortalityField],na.rm=TRUE)
-  good <- completeCases(statehospitals[MortalityField])
-  MinHospitals<-statehospitals[MortalityField]==MinMortality 
-  print(MinMortality)
-  # Extract the names of the hospital with the MinMortality
-  for (i in 1:nrow(statehospitals)){
-     print(i)
-     if (statehospitals[MortalityField]==MinMortality){
-       print("hello")
-       print(statehospitals[i,2])
-     }
-  }       
-   
-
+  bad <- is.na(statehospitals[MortalityField])
+  statehospitals <-statehospitals[!bad,] 
     
+  MinHospitals<-statehospitals[MortalityField]==MinMortality 
+  lowhospitals<-statehospitals[MinHospitals,c(2)]
+  
+
   ## Return hospital name in that state with lowest 30-day death
   ## rate
-  
+  lowhospitals
   
 }
