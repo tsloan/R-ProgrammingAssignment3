@@ -12,16 +12,16 @@ best <- function(state, outcome) {
   ##   [2]     "Hospital.Name"
   ##   [7]     "State"
   ##   [11] "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack"
-  ##   [21] "Number.of.Patients...Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure"
-  ##   [27] "Number.of.Patients...Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia"
+  ##   [17] "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure"
+  ##   [23] "Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia" 
   
   ######################################################################## 
   # Check the request outcome is valid
   validOutcomes <-c("heart attack", "heart failure", "pneumonia")
     
   if (outcome == validOutcomes[1]) MortalityField <- 11
-  else if (outcome == validOutcomes[2]) MortalityField <- 21
-  else if (outcome == validOutcomes[3]) MortalityField <- 27
+  else if (outcome == validOutcomes[2]) MortalityField <- 17
+  else if (outcome == validOutcomes[3]) MortalityField <- 23
   else stop('invalid outcome')
   
   #########################################################################
@@ -59,15 +59,16 @@ best <- function(state, outcome) {
   # coerce outcome measurement from character to numeric
   statehospitals[, MortalityField] <- as.numeric(statehospitals[, MortalityField])
   
-  #  Get the minimum value for the Mortality for that outcome, ignoring NAs
-  
+  #  Get the minimum value for the Mortality for that outcome, ignoring NAs 
   MinMortality <- min(statehospitals[,MortalityField],na.rm=TRUE)
   bad <- is.na(statehospitals[MortalityField])
   statehospitals <-statehospitals[!bad,] 
-    
+  # Get the hospitals with the lowest mortality    
   MinHospitals<-statehospitals[MortalityField]==MinMortality 
   lowhospitals<-statehospitals[MinHospitals,c(2)]
-  
+  if (length(lowhospitals)>1){
+      lowhospitals<-min(lowhospitals)
+  }
 
   ## Return hospital name in that state with lowest 30-day death
   ## rate
