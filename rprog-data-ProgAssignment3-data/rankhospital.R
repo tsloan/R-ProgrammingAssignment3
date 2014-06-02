@@ -93,54 +93,32 @@ rankhospital <- function(state, outcome, num = "best") {
     ## If num is less than the number of hospitals left, exit from the function
     ## with NA as the return value
     
-    if (num > nrow(statehospitals)) return (NA)
+    if (is.numeric(num) && num > nrow(statehospitals)) return (NA)
     
     #########################################################################
     # rank the remaining hospitals according to the values in the OutcomeField
-    # in ascending order
+    # and handle ties by sorting on the hospital name
     #########################################################################
     
-    orderIndex<-order(statehospitals[,OutcomeField])
-    
-    #########################################################################
-    # Create a ranking table consisting of 
-    # hospital name, the value of the Outcome and the hospital rank
-    #########################################################################
-    
-    rank <- vector('character')
-    for (i in 1:length(orderIndex)){
-        line <- c( statehospitals[orderIndex[i],2],
-                   statehospitals[orderIndex[i],OutcomeField], i)
-        # get all the subsequent compare the value of the Outcome field with the next one
-        # if it equals it then sort by hospital name
-        j <- i + 1
-        while (j < length(orderIndex) && ){
-            
-        }
-        rank <- c(rank, line)             
-    }
-    rankmatrix<-matrix(rank,3,nrow(statehospitals))
-    
-    if (num == 1 || num == "best"){
-        # extract the names of all the hospitals with the 
-        # best rank
-        if 
-        #extract the name of the best hospital
-        statehospitals[orderIndex[1],c(2)]
-        # sort the hospitals by name 
-        order(rank)
-    }
-    #check if num == nrow since if it does then need to be careful
-    # about handling ties
-    
-    
-    
-    
-    
-    
+    ranklist<-statehospitals[order(statehospitals[OutcomeField],
+                                   statehospitals[2]), ]
+
+    ##########################################################################
     ## Return hospital name in that state with the given rank
     ## 30-day death rate
-
+    #
+    # Return the name of the hospital with request rank in num
+    ##########################################################################
     
+    if (num == 1 || num == "best"){
+        return(ranklist[1,c(2)])
+        
+    } else if (num == "worst" || num == nrow(ranklist)){
+        return(ranklist[nrow(ranklist), c(2)])
+    } else {
+        return(ranklist[num,c(2)])
+    }
+
+        
     
 }
