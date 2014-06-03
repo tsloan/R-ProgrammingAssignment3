@@ -1,68 +1,5 @@
 
 #############################################################################
-##  rankStateHospital: An internal function for rankall.  This gets the 
-##                     name of the hospital with the desired rank for the 
-##                     specified outcome.
-#############################################################################
-
-rankStateHospital <- function(state, OutcomeField, num = "best"){
-  
-    #########################################################################
-    ## Input parameters are not checked since they have already been
-    ## checked by rankhospital
-    #########################################################################
-    
-    # The two letter state code is held in field 7 of 
-    # outcome-of-care-measures.csv
-    USstate <- 7
-    
-    #########################################################################
-    ## Extract the rows for the hospitals in state 
-    #########################################################################
-    
-    statehospitals <- data[data[USstate]==state,]
-    
-    # coerce outcome measurement from character to numeric
-    statehospitals[, OutcomeField] <- 
-        as.numeric(statehospitals[, OutcomeField])
-    
-    # remove the hospitals where value for the outcome field is NA
-    bad <- is.na(statehospitals[OutcomeField])
-    statehospitals <-statehospitals[!bad,]
-    
-    ## If num is less than the number of hospitals left, exit from the function
-    ## with NA as the return value
-    
-    if (is.numeric(num) && num > nrow(statehospitals)) return (NA)
-    
-    #########################################################################
-    # rank the remaining hospitals according to the values in the OutcomeField
-    # and handle ties by sorting on the hospital name
-    #########################################################################
-    
-    ranklist<-statehospitals[order(statehospitals[OutcomeField],
-                                   statehospitals[2]), ]
-    
-    ##########################################################################
-    ## Return hospital name in that state with the given rank
-    ## 30-day death rate
-    #
-    # Return the name of the hospital with request rank in num
-    ##########################################################################
-    
-    if (num == 1 || num == "best"){
-        return(ranklist[1,c(2)])
-        
-    } else if (num == "worst" || num == nrow(ranklist)){
-        return(ranklist[nrow(ranklist), c(2)])
-    } else {
-        return(ranklist[num,c(2)])
-    }
-    
-    
-} # end rankStateHospital function
-
-#############################################################################
 ##
 ## rankall: takes two arguments: an outcome name (outcome) and a hospital 
 ##          ranking (num). The function reads the 
@@ -72,12 +9,83 @@ rankStateHospital <- function(state, OutcomeField, num = "best"){
 #############################################################################
 
 rankall <- function(outcome, num = "best") {
+    
+    #############################################################################
+    ##  rankStateHospital: An internal function for rankall.  This gets the 
+    ##                     name of the hospital with the desired rank for the 
+    ##                     specified outcome.
+    ##                     It uses the data data frame from the surrounding
+    ##                     environment
+    #############################################################################
+    
+    rankStateHospital <- function(state, OutcomeField, num = "best"){
+        
+        #########################################################################
+        ## Input parameters are not checked since they have already been
+        ## checked by rankhospital
+        #########################################################################
+        
+        # The two letter state code is held in field 7 of 
+        # outcome-of-care-measures.csv
+        USstate <- 7
+        
+        #########################################################################
+        ## Extract the rows for the hospitals in state 
+        #########################################################################
+        
+        statehospitals <- data[data[USstate]==state,]
+        
+        # coerce outcome measurement from character to numeric
+        statehospitals[, OutcomeField] <- 
+            as.numeric(statehospitals[, OutcomeField])
+        
+        # remove the hospitals where value for the outcome field is NA
+        bad <- is.na(statehospitals[OutcomeField])
+        statehospitals <-statehospitals[!bad,]
+        
+        ## If num is less than the number of hospitals left, exit from the function
+        ## with NA as the return value
+        
+        if (is.numeric(num) && num > nrow(statehospitals)) return (NA)
+        
+        #########################################################################
+        # rank the remaining hospitals according to the values in the OutcomeField
+        # and handle ties by sorting on the hospital name
+        #########################################################################
+        
+        ranklist<-statehospitals[order(statehospitals[OutcomeField],
+                                       statehospitals[2]), ]
+        
+        ##########################################################################
+        ## Return hospital name in that state with the given rank
+        ## 30-day death rate
+        #
+        # Return the name of the hospital with request rank in num
+        ##########################################################################
+        
+        if (num == 1 || num == "best"){
+            return(ranklist[1,c(2)])
+            
+        } else if (num == "worst" || num == nrow(ranklist)){
+            return(ranklist[nrow(ranklist), c(2)])
+        } else {
+            return(ranklist[num,c(2)])
+        }
+        
+        
+    } # end of rankStateHospital function
+    
+
     #########################################################################
-    ## Check that state and outcome are are not missing
+    ## START OF rankall
+    #########################################################################
+    
+        
+    #########################################################################
+    ## Check that outcome is not missing
     #########################################################################
     
     if (missing(outcome)) stop("invalid outcome")
-    if (missing(state)) stop ("invalid state")
         
     #########################################################################
     ## Read outcome data from csv file as characters.  Turn fields containing
@@ -133,10 +141,6 @@ rankall <- function(outcome, num = "best") {
     # then use names() to get the 2 letter statecode
     stateCodes<-names(table(data[USstate]))
     
-    #########################################################################
-    ## Create the output data frame to hold the output data
-    #########################################################################
-    
 
     #########################################################################
     ## Loop over the stateCodes and for each stateCode, extract the
@@ -148,7 +152,21 @@ rankall <- function(outcome, num = "best") {
     ## is used.)
     ## 
     #########################################################################
+
+    hospitalname <- character(0) # initialise the vector of hospital names
+        
+    for (i in 1:length(stateCodes))
+    {
+        hospitalname <- c( hospitalname, 
+                           rankStateHospital(stateCodes[i], OutcomeField, num))
+    }
     
+    #########################################################################
+    ## Create the output data frame to hold the output data
+    #########################################################################
+    
+    data.frame(hospital=hospitalname,state=stateCodes)
+        
     
     ## For each state, find the hospital of the given rank
     ## Return a data frame with the hospital names and the
